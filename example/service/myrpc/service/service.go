@@ -1,12 +1,13 @@
 package service
 
-import (
-	"test/service/myrpc/proto"
-)
+import "test/example/service/myrpc/proto"
 
 // Service .
 type Service struct {
 	// ##继承
+	proto.UnimplementedDeviceServer
+	proto.UnimplementedGroupServer
+	proto.UnimplementedLinkageServer
 	proto.UnimplementedLoginServer
 	// ##继承
 }

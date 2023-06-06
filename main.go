@@ -28,10 +28,17 @@ func main() {
 
 	// 读取函数方法
 	for _, v := range grpcFileList {
+		continue
+		log.Println("准备格式化: ====>>", v.Name())
 		name := v.Name()
 		name = name[:len(name)-11]
 		readFuncMethod(name)
+
 	}
+	// 处理service文件
+	readServiceFile(grpcFileList)
+	// 处理server文件
+	readServerFile(grpcFileList)
 }
 
 // 读取函数方法
@@ -100,14 +107,9 @@ func readFuncMethod(fileName string) {
 	serceFile := "./service/myrpc/service" + "/" + fileName + ".go"
 	serviceBody := readService(serceFile)
 	checkServiceFunc(serceFile, string(serviceBody), funcInfoList)
-
-	// 处理service文件
-	readServiceFile(fileNameFunc)
-	// 处理server文件
-	readServerFile(fileNameFunc)
 }
 
-func readServerFile(fileNameFunc string) {
+func readServerFile(grpcFileList []fs.FileInfo) {
 	path := "./service/myrpc/server.go"
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -115,41 +117,49 @@ func readServerFile(fileNameFunc string) {
 	}
 	// 注入GRPC服务
 	dataList := strings.Split(string(body), "// 注入GRPC服务")
-	if !strings.Contains(dataList[1], fileNameFunc+"Server") {
-		log.Println("service 不存在GRPC服务", fileNameFunc+"Server")
-		dataList[1] = "// 注入GRPC服务" + dataList[1] + "proto.Register" + fileNameFunc + "Server(gs, server)" + "\n	// 注入GRPC服务"
-	} else {
-		dataList[1] = "// 注入GRPC服务" + dataList[1] + "// 注入GRPC服务"
+	dataList[1] = "// 注入GRPC服务\n"
+	for _, v := range grpcFileList {
+		name := v.Name()
+		name = name[:len(name)-11]
+		fileNameFunc := strings.ToUpper(name[:1]) + name[1:]
+		dataList[1] += "\tproto.Register" + fileNameFunc + "Server(gs, server)\n"
 	}
+	dataList[1] += "\t// 注入GRPC服务"
+
 	// 注入GW服务
 	dataList = strings.Split(dataList[0]+dataList[1]+dataList[2], "// 注入GW服务")
-	if !strings.Contains(dataList[1], fileNameFunc+"HandlerFromEndpoint") {
-		log.Println("service 不存在GW服务", fileNameFunc+"Server")
-		dataList[1] = "// 注入GW服务" + dataList[1] + "err = proto.Register" + fileNameFunc + `HandlerFromEndpoint(ctx, mux, cfg.grpcPort, opts)
+	dataList[1] = "// 注入GW服务\n"
+	for _, v := range grpcFileList {
+		name := v.Name()
+		name = name[:len(name)-11]
+		fileNameFunc := strings.ToUpper(name[:1]) + name[1:]
+		dataList[1] += "\terr = proto.Register" + fileNameFunc + `HandlerFromEndpoint(ctx, mux, cfg.grpcPort, opts)
 	if err != nil {
 		log.Fatal("启动GW错误:", err)
-	}` + "\n	// 注入GW服务"
-	} else {
-		dataList[1] = "// 注入GW服务" + dataList[1] + "// 注入GW服务"
+	}` + "\n"
 	}
+	dataList[1] += "\t// 注入GW服务"
 
 	os.WriteFile(path, []byte(dataList[0]+dataList[1]+dataList[2]), 0666)
 }
 
-func readServiceFile(fileNameFunc string) {
+func readServiceFile(grpcFileList []fs.FileInfo) {
+
 	path := "./service/myrpc/service/service.go"
 	body, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 	dataList := strings.Split(string(body), "// ##继承")
-
-	if strings.Contains(dataList[1], fileNameFunc+"Server") {
-		log.Println("service 已经存在服务", fileNameFunc+"Server")
-		return
+	dataList[1] = "// ##继承\n"
+	for _, v := range grpcFileList {
+		name := v.Name()
+		name = name[:len(name)-11]
+		fileNameFunc := strings.ToUpper(name[:1]) + name[1:]
+		dataList[1] += "\tproto.Unimplemented" + fileNameFunc + "Server\n"
 	}
-	dataList[1] = "// ##继承" + dataList[1] + "proto.Unimplemented" + fileNameFunc + "Server" + "\n	// ##继承"
-	log.Println("写入ervice 已经存在服务", fileNameFunc+"Server")
+	dataList[1] += "\t// ##继承"
+	log.Println("写入service服务")
 	os.WriteFile(path, []byte(dataList[0]+dataList[1]+dataList[2]), 0666)
 }
 

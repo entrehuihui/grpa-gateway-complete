@@ -153,6 +153,9 @@ func startGRPC(cfg config, tlsConfig *tls.Config) *grpc.Server {
 	gs := grpc.NewServer(opts...)
 
 	// 注入GRPC服务
+	proto.RegisterDeviceServer(gs, server)
+	proto.RegisterGroupServer(gs, server)
+	proto.RegisterLinkageServer(gs, server)
 	proto.RegisterLoginServer(gs, server)
 	// 注入GRPC服务
 
@@ -171,6 +174,18 @@ func startGW(cfg config) *http.ServeMux {
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(dcreds)}
 
 	// 注入GW服务
+	err = proto.RegisterDeviceHandlerFromEndpoint(ctx, mux, cfg.grpcPort, opts)
+	if err != nil {
+		log.Fatal("启动GW错误:", err)
+	}
+	err = proto.RegisterGroupHandlerFromEndpoint(ctx, mux, cfg.grpcPort, opts)
+	if err != nil {
+		log.Fatal("启动GW错误:", err)
+	}
+	err = proto.RegisterLinkageHandlerFromEndpoint(ctx, mux, cfg.grpcPort, opts)
+	if err != nil {
+		log.Fatal("启动GW错误:", err)
+	}
 	err = proto.RegisterLoginHandlerFromEndpoint(ctx, mux, cfg.grpcPort, opts)
 	if err != nil {
 		log.Fatal("启动GW错误:", err)

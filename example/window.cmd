@@ -4,7 +4,7 @@ protoc -I ./service/myrpc/proto --grpc-gateway_out ./service/myrpc/proto --grpc-
 
 protoc -I ./service/myrpc/proto --proto_path=../ --swagger_out=logtostderr=true:./service/myrpc/proto/ ./service/myrpc/proto/*.proto
 
-aias -d service/myrpc/proto
+@REM aias -d service/myrpc/proto
 
 @REM echo Set up cross-compilation environment
 @REM go env -w GOSUMDB=off
