@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -14,12 +13,12 @@ var grpcPath = "./service/myrpc/proto"
 func main() {
 
 	// 读取grpc文件夹文件
-	grpcFileInfo, err := ioutil.ReadDir(grpcPath)
+	grpcFileInfo, err := os.ReadDir(grpcPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	grpcFileList := make([]fs.FileInfo, 0)
+	grpcFileList := make([]fs.DirEntry, 0)
 	for _, v := range grpcFileInfo {
 		if strings.Contains(v.Name(), "_grpc.pb.go") {
 			grpcFileList = append(grpcFileList, v)
@@ -28,7 +27,6 @@ func main() {
 
 	// 读取函数方法
 	for _, v := range grpcFileList {
-		continue
 		log.Println("准备格式化: ====>>", v.Name())
 		name := v.Name()
 		name = name[:len(name)-11]
@@ -109,9 +107,9 @@ func readFuncMethod(fileName string) {
 	checkServiceFunc(serceFile, string(serviceBody), funcInfoList)
 }
 
-func readServerFile(grpcFileList []fs.FileInfo) {
+func readServerFile(grpcFileList []fs.DirEntry) {
 	path := "./service/myrpc/server.go"
-	body, err := ioutil.ReadFile(path)
+	body, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -143,10 +141,10 @@ func readServerFile(grpcFileList []fs.FileInfo) {
 	os.WriteFile(path, []byte(dataList[0]+dataList[1]+dataList[2]), 0666)
 }
 
-func readServiceFile(grpcFileList []fs.FileInfo) {
+func readServiceFile(grpcFileList []fs.DirEntry) {
 
 	path := "./service/myrpc/service/service.go"
-	body, err := ioutil.ReadFile(path)
+	body, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -297,7 +295,7 @@ func readService(fileName string) []byte {
 		return make([]byte, 0)
 	}
 
-	body, err := ioutil.ReadFile(fileName)
+	body, err := os.ReadFile(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
