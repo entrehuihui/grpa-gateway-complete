@@ -197,7 +197,6 @@ func emptyBodyOperate(fileName string, funcInfo []FuncInfo) {
 
 import (
 	"context"
-	"test/service/myrpc/proto"
 )
 	
 `
