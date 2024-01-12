@@ -85,6 +85,9 @@ func readFuncMethod(fileName string) {
 	fileNameLen := len(fileNameFunc)
 	// func (s Service) DeviceReg
 	for i := 0; i < len(tysInfo); i++ {
+		if len(tysInfo[i]) < fileNameLen {
+			continue
+		}
 		if tysInfo[i][:fileNameLen] == fileNameFunc {
 			info := FuncInfo{
 				Data: tysInfo[i],

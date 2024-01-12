@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "yibao/service/myrpc/proto";
+
+import "google/api/annotations.proto";
+
+service Production {
+  // 列表
+  rpc ProductionGet(ProductionGetReq) returns (ProductionGetResp) {
+    option (google.api.http) = {
+      get : "/v24000/production"
+    };
+  };
+  // 修改
+  rpc ProductionPut(ProductionPutReq) returns (ProductionPutResp) {
+    option (google.api.http) = {
+      put : "/v24000/production"
+      body : "*"
+    };
+  };
+  // 新增
+  rpc ProductionPost(ProductionPostReq) returns (ProductionPostResp) {
+    option (google.api.http) = {
+      post : "/v24000/production"
+      body : "*"
+    };
+  };
+  rpc ProductionDel(ProductionDelReq) returns (ProductionDelResp) {
+    option (google.api.http) = {
+      delete : "/v24000/production/{id=*}"
+    };
+  };
+}
+
+message ProductionGetReq {
+  int64 limit = 1;
+  int64 offset = 2;
+  string fuzzy = 3;
+}
+
+message ProductionGetResp {
+  int32 code = 1;
+  string message = 2;
+  int64 count = 3;
+  repeated ProductionInfo data = 4;
+}
+
+message ProductionInfo {
+  int32 id = 1;
+  string name = 2;
+  string details = 3;
+  int64 protime = 4;
+  int32 state = 5;
+  int32 total = 6;
+}
+
+message ProductionPutReq {
+  int64 protime = 1;
+  int32 state = 2;
+}
+message ProductionPutResp {
+  int32 code = 1;
+  string message = 2;
+}
+
+message ProductionPostReq {
+  int64 protime = 1;
+  int32 state = 2;
+  repeated ProductionPostInfo data = 3;
+}
+message ProductionPostInfo {
+  string csn = 1;
+  string Sesn = 2;
+}
+message ProductionPostResp {
+  int32 code = 1;
+  string message = 2;
+}
+
+message ProductionDelReq { int32 id = 1; }
+message ProductionDelResp {
+  int32 code = 1;
+  string message = 2;
+}
